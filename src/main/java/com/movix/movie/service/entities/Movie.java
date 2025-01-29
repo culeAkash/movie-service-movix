@@ -33,6 +33,8 @@ public class Movie {
     @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd")
     private Date releaseDate;
 
+    private String synopsis;
+
     private Integer runtime;
 
     @Column(name = "video_url")
