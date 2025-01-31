@@ -21,7 +21,7 @@ public class MovieDTO {
     private String synopsis;
     private Integer runtime;
     private String videoUrl;
-    private String imageUrl;
+    private String posterUrl;
 
     private List<GenreDTO> genres;
 }

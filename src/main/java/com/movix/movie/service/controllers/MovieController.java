@@ -7,10 +7,8 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RefreshScope
 @RestController
@@ -21,8 +19,8 @@ public class MovieController {
     private MovieService movieService;
 
     @PostMapping("/createMovie")
-    public ResponseEntity<MovieDTO> createMovie(@RequestBody @Valid MovieCreateRequest movieCreateRequest) {
-        MovieDTO movieDTO = movieService.createMovie(movieCreateRequest);
+    public ResponseEntity<MovieDTO> createMovie(@RequestPart @Valid MovieCreateRequest movieCreateRequest,@RequestPart(required = false) MultipartFile posterFile,@RequestPart(required = false) MultipartFile videoFile) {
+        MovieDTO movieDTO = movieService.createMovie(movieCreateRequest,posterFile);
         return ResponseEntity.ok(movieDTO);
     }
 }
