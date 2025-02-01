@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Getter
@@ -20,6 +21,6 @@ public class MovieCreateRequest {
     private String director;
     private String synopsis;
     @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "dd-MM-yyyy")
-    private Date releaseDate;
+    private LocalDate releaseDate;
     private Integer runtime;
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -38,9 +39,9 @@ public class MinioServiceImpl implements MinioService {
 
 
     @Override
-    public String uploadPosterFile(MultipartFile posterImageFile) {
+    public void uploadPosterFile(MultipartFile posterImageFile, UUID fileUuid) {
         try {
-            String objectName = "uploads/" + posterImageFile.getOriginalFilename();
+//            String objectName = "uploads/posters/" + posterImageFile.getOriginalFilename();
             LOGGER.info("Minio client --> {}",minioClient);
 
             // upload file to minio
@@ -48,24 +49,33 @@ public class MinioServiceImpl implements MinioService {
                 this.minioClient.putObject(
                         PutObjectArgs.builder()
                                 .bucket(bucketName)
-                                .object(objectName)
+                                .object(fileUuid.toString())
                                 .stream(inputStream,posterImageFile.getSize(),-1)
                                 .contentType(posterImageFile.getContentType())
                                 .build()
                 );
             }
-            return this.minioClient.getPresignedObjectUrl(
-                    GetPresignedObjectUrlArgs.builder()
-                            .method(Method.GET)
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .expiry(1, TimeUnit.MINUTES)
-                            .build()
-            );
         }
         catch (Exception e) {
             LOGGER.error("MINIO_UPLOAD_SERVICE ---> {}", e.getMessage());
             throw new RuntimeException("Error Uploading File : " + e.getMessage(),e);
+        }
+    }
+
+    @Override
+    public String getMoviePosterUrl(UUID fileUuid) {
+        try{
+            return this.minioClient.getPresignedObjectUrl(
+                GetPresignedObjectUrlArgs.builder()
+                        .method(Method.GET)
+                        .bucket(bucketName)
+                        .object(fileUuid.toString())
+                        .expiry(22,TimeUnit.HOURS)
+                        .build()
+            );
+        }catch(Exception e){
+            LOGGER.error("MINIO_GET_POST_SERVICE ---> {}", e.getMessage());
+            throw new RuntimeException("Error Getting Movie Poster",e);
         }
     }
 
