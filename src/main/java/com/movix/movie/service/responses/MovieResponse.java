@@ -2,7 +2,6 @@ package com.movix.movie.service.responses;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.movix.movie.service.dto.GenreDTO;
-import com.movix.movie.service.dto.MovieDTO;
 import lombok.*;
 
 import java.util.Date;
