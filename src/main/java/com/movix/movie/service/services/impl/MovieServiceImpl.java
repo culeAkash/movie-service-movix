@@ -2,12 +2,18 @@ package com.movix.movie.service.services.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.movix.movie.service.dto.GenreDTO;
 import com.movix.movie.service.dto.utils.MovieFilterDTO;
 import com.movix.movie.service.dto.utils.MovieInDTO;
 import com.movix.movie.service.dto.utils.MovieSortDTO;
 import com.movix.movie.service.entities.FileMetaData;
+import com.movix.movie.service.entities.Genre;
 import com.movix.movie.service.entities.Movie;
+import com.movix.movie.service.entities.MovieGenres;
+import com.movix.movie.service.exceptions.ResourceNotFoundException;
 import com.movix.movie.service.repositories.FileMetadataRepository;
+import com.movix.movie.service.repositories.GenreRepository;
+import com.movix.movie.service.repositories.MovieGenresRepository;
 import com.movix.movie.service.repositories.MovieRepository;
 import com.movix.movie.service.requests.MovieCreateRequest;
 import com.movix.movie.service.responses.MovieResponse;
@@ -18,10 +24,7 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +42,10 @@ public class MovieServiceImpl implements MovieService {
 
     private final FileMetadataRepository fileMetadataRepository;
 
+    private final MovieGenresRepository movieGenresRepository;
+
+    private final GenreRepository genreRepository;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(MovieServiceImpl.class);
 
 
@@ -48,6 +55,13 @@ public class MovieServiceImpl implements MovieService {
         try {
             UUID fileUuid = UUID.randomUUID();
 
+            // check if genre is already present
+           Optional<Genre> movieGenreOptional =  this.genreRepository.findByGenreName(movieCreateRequest.getGenre());
+           Genre movieGenre;
+            movieGenre = movieGenreOptional.orElseGet(() -> this.genreRepository.save(Genre.builder()
+                    .genreName(movieCreateRequest.getGenre())
+                    .build()));
+
             Movie toSaveMovie = Movie.builder()
                     .movieName(movieCreateRequest.getMovieName())
                     .director(movieCreateRequest.getDirector())
@@ -55,6 +69,12 @@ public class MovieServiceImpl implements MovieService {
                     .releaseDate(movieCreateRequest.getReleaseDate())
                     .build();
             Movie savedMovie = this.movieRepository.save(toSaveMovie);
+
+            //save to genremovie service db
+            this.movieGenresRepository.save(MovieGenres.builder()
+                            .movieId(savedMovie.getMovieId())
+                            .genreId(movieGenre.getGenreId())
+                    .build());
 
             FileMetaData fileMetaData = FileMetaData.builder()
                     .fileId(fileUuid.toString())
@@ -64,6 +84,7 @@ public class MovieServiceImpl implements MovieService {
                     .build();
             FileMetaData savedFileMetadata = fileMetadataRepository.save(fileMetaData);
             this.minioService.uploadPosterFile(posterFile, fileUuid);
+
             return this.modelMapper.map(savedMovie, MovieResponse.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -86,7 +107,17 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Page<MovieResponse> getAllMovies(Pageable pageable) {
        Page<Movie> movies =  this.movieRepository.findAll(pageable);
-       return movies.map(movie -> this.modelMapper.map(movie, MovieResponse.class));
+       LOGGER.info("movies : {}", movies.getContent());
+        Page<MovieResponse> movieResponsesPage = movies.map(movie -> this.modelMapper.map(movie, MovieResponse.class));
+       List<MovieResponse> movieResponses = movieResponsesPage.getContent().stream().map(movie-> {
+                   for (GenreDTO genreDTO : movie.getGenres()) {
+                       Optional<Genre> genre = this.genreRepository.findById(genreDTO.getGenreId());
+                       genre.ifPresent(value -> genreDTO.setGenreName(value.getGenreName()));
+                   }
+                   return movie;
+               }
+       ).toList();
+        return new PageImpl<>(movieResponses, movieResponsesPage.getPageable(), movieResponsesPage.getTotalElements());
     }
 
     @Override

@@ -6,9 +6,11 @@ import com.movix.movie.service.responses.MovieResponse;
 import com.movix.movie.service.services.MovieService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,12 +19,14 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1/movies")
 @AllArgsConstructor
+@Slf4j
 public class MovieController {
 
     private MovieService movieService;
 
-    @PostMapping("/createMovie")
-    public ResponseEntity<MovieResponse> createMovie(@RequestPart @Valid MovieCreateRequest movieCreateRequest,@RequestPart(required = false) MultipartFile posterFile) {
+    @PostMapping(value = "/createMovie",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<MovieResponse> createMovie(@RequestPart(value = "posterFile", required = false) MultipartFile posterFile
+            ,@RequestPart(value = "movieCreateRequest") MovieCreateRequest movieCreateRequest) {
         MovieResponse movieResponse = movieService.createMovie(movieCreateRequest,posterFile);
         return ResponseEntity.ok(movieResponse);
     }
@@ -36,6 +40,7 @@ public class MovieController {
 
     @GetMapping("/getAllMovies")
     public ResponseEntity<Page<MovieResponse>> getAllMovies(Pageable pageable) {
+        log.info("getAllMovies : {}",pageable.toString());
        Page<MovieResponse> movieResponsePage = this.movieService.getAllMovies(pageable);
        return ResponseEntity.ok(movieResponsePage);
     }
