@@ -5,12 +5,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "movies")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -31,18 +30,21 @@ public class Movie {
 
     @Column(name = "release_date",nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd")
-    private Date releaseDate;
+    private LocalDate releaseDate;
+
+    private String synopsis;
 
     private Integer runtime;
 
     @Column(name = "video_url")
     private String videoUrl;
 
-    @Column(name = "poster_url")
-    private String posterUrl;
+    @OneToOne(mappedBy = "movie")
+    @JsonIgnore
+    @ToString.Exclude
+    private FileMetaData posterFileMetadata;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "movie_id", referencedColumnName = "movie_id")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true,mappedBy = "movie")
     private Set<MovieGenres> movieGenres = new HashSet<>();
 
 }
