@@ -44,8 +44,7 @@ public class Movie {
     @ToString.Exclude
     private FileMetaData posterFileMetadata;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "movie_id", referencedColumnName = "movie_id")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true,mappedBy = "movie")
     private Set<MovieGenres> movieGenres = new HashSet<>();
 
 }

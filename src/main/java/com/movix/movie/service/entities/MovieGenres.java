@@ -18,11 +18,13 @@ public class MovieGenres {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String movieGenreId;
 
-    @Column(name = "movie_id")
-    private String movieId;
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+    @JoinColumn(name = "movie_id",nullable = false)
+    private Movie movie;
 
-    @Column(name = "genre_id")
-    private String genreId;
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+    @JoinColumn(name = "genre_id",nullable = false)
+    private Genre genre;
 
     @Column(nullable = false)
     private Date timestamp;

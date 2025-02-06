@@ -27,14 +27,24 @@ public class MovieSpecification {
             }
 
             if(movieFilterDTO.getGenre()!=null){
-                Join<MovieGenres, Movie> genresJoin = root.join(("movieId"));
-                log.info(String.valueOf(genresJoin));
-//                Join<Movie, Genre> genreDetailJoin = genresJoin.join(("movieGenres"));
-                predicates.add(criteriaBuilder.equal(genresJoin.get("genreName"),movieFilterDTO.getGenre()));
+                Join<Movie, MovieGenres> genresJoin = root.join(("movieGenres"));
+//                log.info(String.valueOf(genresJoin));
+                Join<MovieGenres, Genre> genreDetailJoin = genresJoin.join(("genre"));
+                predicates.add(criteriaBuilder.equal(genreDetailJoin.get("genreName"),movieFilterDTO.getGenre()));
             }
 
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            if(movieFilterDTO.getReleaseDateFrom()!=null && movieFilterDTO.getReleaseDateTo()!=null){
+                predicates.add(criteriaBuilder.between(root.get("releaseDate"),movieFilterDTO.getReleaseDateFrom(),movieFilterDTO.getReleaseDateTo()));
+            }
+            else if(movieFilterDTO.getReleaseDateFrom()!=null){
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("releaseDate"),movieFilterDTO.getReleaseDateFrom()));
+            }
+            else if(movieFilterDTO.getReleaseDateTo()!=null){
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("releaseDate"),movieFilterDTO.getReleaseDateTo()));
+            }
 
+            //            log.info("Final Criteria : {}",finalCriteria.getExpressions().toString());
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }
 }

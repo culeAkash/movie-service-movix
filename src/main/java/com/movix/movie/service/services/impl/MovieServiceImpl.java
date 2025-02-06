@@ -52,7 +52,6 @@ public class MovieServiceImpl implements MovieService {
     @Override
     @Transactional
     public MovieResponse createMovie(MovieCreateRequest movieCreateRequest, MultipartFile posterFile) {
-        try {
             UUID fileUuid = UUID.randomUUID();
 
             // check if genre is already present
@@ -72,8 +71,8 @@ public class MovieServiceImpl implements MovieService {
 
             //save to genremovie service db
             this.movieGenresRepository.save(MovieGenres.builder()
-                            .movieId(savedMovie.getMovieId())
-                            .genreId(movieGenre.getGenreId())
+                            .movie(savedMovie)
+                            .genre(movieGenre)
                     .build());
 
             FileMetaData fileMetaData = FileMetaData.builder()
@@ -86,9 +85,6 @@ public class MovieServiceImpl implements MovieService {
             this.minioService.uploadPosterFile(posterFile, fileUuid);
 
             return this.modelMapper.map(savedMovie, MovieResponse.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -121,10 +117,19 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @Transactional(rollbackOn = Exception.class)
     public void deleteMovie(String movieId) {
         //TODO : Check for exceptions if movie id exists
+        this.movieRepository.findById(movieId)
+                .orElseThrow(()-> new ResourceNotFoundException("Movie","movieId",movieId));
+
         // TODO : put to queue as reviews and ratings must also be deleted
-        this.movieRepository.deleteById(movieId);
+        try {
+            this.movieRepository.deleteById(movieId);
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -134,6 +139,8 @@ public class MovieServiceImpl implements MovieService {
                 .movieName(movieInDTO.getMovieName())
                 .director(movieInDTO.getDirector())
                 .genre(movieInDTO.getGenre())
+                .releaseDateFrom(movieInDTO.getReleaseDateFrom())
+                .releaseDateTo(movieInDTO.getReleaseDateTo())
                 .build();
 
         // Parse and create sort orders

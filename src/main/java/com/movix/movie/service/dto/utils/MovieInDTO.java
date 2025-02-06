@@ -22,4 +22,10 @@ public class MovieInDTO {
     private Integer page;
     private Integer size;
     private String sort;
+
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd")
+    LocalDate releaseDateFrom;
+    @JsonFormat(shape = JsonFormat.Shape.STRING,pattern = "yyyy-MM-dd")
+    LocalDate releaseDateTo;
 }
