@@ -25,6 +25,6 @@ public class Genre {
     private String genreName;
 
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true,mappedBy = "genre")
+    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true,mappedBy = "genre")
     private Set<MovieGenres> movieGenres = new HashSet<MovieGenres>();
 }
