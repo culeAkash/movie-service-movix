@@ -18,4 +18,6 @@ public interface MovieService {
 
 
     public Page<MovieResponse> searchMovieWithPaginationSortingAndFiltering(MovieInDTO movieInDTO);
+
+    public MovieResponse getMovieById(String movieId);
 }

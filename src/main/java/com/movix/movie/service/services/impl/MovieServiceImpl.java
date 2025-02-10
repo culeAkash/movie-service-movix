@@ -168,6 +168,12 @@ public class MovieServiceImpl implements MovieService {
         return movies.map((movie)->modelMapper.map(movie, MovieResponse.class));
     }
 
+    @Override
+    public MovieResponse getMovieById(String movieId) {
+       Movie movie = this.movieRepository.findById(movieId).orElseThrow(()-> new ResourceNotFoundException("Movie","movieId",movieId));
+       return this.modelMapper.map(movie, MovieResponse.class);
+    }
+
     private List<MovieSortDTO> jsonStringToSortDto(String jsonString) {
         try {
             ObjectMapper obj = new ObjectMapper();

@@ -112,4 +112,11 @@ public class MovieController {
                 )
         );
     }
+
+
+    @GetMapping("/getMovieById")
+    public ResponseEntity<MovieResponse> getMovieById(@RequestParam String movieId) {
+        MovieResponse movieResponse = this.movieService.getMovieById(movieId);
+        return ResponseEntity.ok(movieResponse);
+    }
 }
